@@ -1,0 +1,229 @@
+%%
+%% algorithmlite.sty
+%% =================
+%% A lightweight algorithm float without the float package.
+%%
+%% Copyright (c) 2026 Munehiro Yamamoto <munepixyz@gmail.com>
+%%
+%% This package is licensed under the conditions of the LaTeX Project
+%% Public License, either version 1.3c of this license or (at your
+%% option) any later version.  The latest version of this license is in
+%%   https://www.latex-project.org/lppl.txt
+%%
+%% This work has the LPPL maintenance status `maintained'.
+%% The Current Maintainer of this work is Munehiro Yamamoto.
+%%
+%% Background
+%%   The algorithm package defines the algorithm float with \newfloat of
+%%   the float package, and the float package redefines \caption as a
+%%   whole for every document.
+%%
+%% What this package does
+%%   It defines the environments algorithm and algorithm* in the same
+%%   way as the standard classes define figure and table, with the
+%%   \@float and \@dblfloat of the LaTeX kernel:
+%%     (1) the counter algorithm is reset at every chapter, and
+%%         \thealgorithm is "<chapter>.<n>" (or "<n>" before the first
+%%         chapter), if \chapter is defined; otherwise "<n>";
+%%     (2) the default placement is tbp, the float type is the next free
+%%         one (4 in most documents; shared with the float, floatrow,
+%%         newfloat packages and memoir), and the list file is .loa;
+%%     (3) \algorithmname, \listalgorithmname and \listofalgorithms;
+%%         Japanese names with pTeX/upTeX and LuaTeX-ja;
+%%     (4) the placement [H] (here, no float) for every float type if
+%%         the float package or the floatrow package does not give one.
+%%   The content of an algorithm (algorithmic, algpseudocode, ...) is
+%%   loaded by the user.
+%%
+%% Limitations
+%%   * The algorithm and algorithm2e packages cannot be used with this
+%%     package (error).
+%%   * algorithm*[H] in two-column mode is not supported (as with the
+%%     float package).
+%%   * Vertical writing (tate) is out of the scope of this version.
+%%
+%% Supported formats/engines: pdfLaTeX, XeLaTeX, LuaLaTeX, pLaTeX and
+%% upLaTeX (+ dvipdfmx).
+%%
+\NeedsTeXFormat{LaTeX2e}[2020/10/01]
+\ProvidesPackage{algorithmlite}
+  [2026/10/26 v1.0 A lightweight algorithm float without the float package]
+
+%% -----------------------------------------------------------------
+%% 0. Conflicts with the algorithm and algorithm2e packages
+%% -----------------------------------------------------------------
+\def\algorithmlite@conflict#1{%
+  \PackageError{algorithmlite}
+    {Package `#1' cannot be used with algorithmlite}
+    {Both define the algorithm environment; load only one of them.}}
+\newif\ifalgorithmlite@stop
+\@for\algorithmlite@tempa:={algorithm,algorithm2e}\do{%
+  \@ifpackageloaded\algorithmlite@tempa
+    {\algorithmlite@conflict\algorithmlite@tempa
+     \global\algorithmlite@stoptrue}{}}
+\ifalgorithmlite@stop\else
+  \@tempswafalse
+  \@ifundefined{c@algorithm}{\@ifundefined{algorithm}{}{\@tempswatrue}}
+    {\@tempswatrue}
+  \if@tempswa
+    \PackageError{algorithmlite}
+      {The algorithm environment or counter is already defined}
+      {algorithmlite will not redefine it.}%
+    \algorithmlite@stoptrue
+  \fi
+\fi
+\ifalgorithmlite@stop\expandafter\endinput\fi
+\AddToHook{package/algorithm/before}{\algorithmlite@conflict{algorithm}}
+\AddToHook{package/algorithm2e/before}{\algorithmlite@conflict{algorithm2e}}
+
+%% -----------------------------------------------------------------
+%% 1. Names
+%% -----------------------------------------------------------------
+\newcommand\algorithmname{Algorithm}
+\newcommand\listalgorithmname{List of Algorithms}
+\let\algorithmlite@en@name\algorithmname
+\def\algorithmlite@japanese{%
+  \renewcommand\algorithmname{アルゴリズム}%
+  \renewcommand\listalgorithmname{アルゴリズム目次}}
+%% \algorithmlite@ifenglish{<true>}{<false>}: the option english of
+%% jsclasses and the LuaTeX-ja classes
+\def\algorithmlite@ifenglish{%
+  \@ifundefined{if@english}\@secondoftwo
+    {\csname if@english\endcsname
+       \expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}}
+\def\algorithmlite@setjapanese{%
+  \algorithmlite@ifenglish{}{\algorithmlite@japanese}}
+\ifdefined\kanjiskip
+  \algorithmlite@setjapanese
+\else
+  \@ifpackageloaded{luatexja}
+    {\algorithmlite@setjapanese}
+    {\AddToHook{package/luatexja/after}{%
+       \ifx\algorithmname\algorithmlite@en@name
+         \algorithmlite@setjapanese
+       \fi}}
+\fi
+
+%% -----------------------------------------------------------------
+%% 2. Counter
+%% -----------------------------------------------------------------
+\@ifundefined{c@chapter}
+  {\newcounter{algorithm}%
+   \renewcommand\thealgorithm{\@arabic\c@algorithm}}
+  {\newcounter{algorithm}[chapter]%
+   \renewcommand\thealgorithm{%
+     \ifnum\c@chapter>\z@\thechapter.\fi\@arabic\c@algorithm}}
+
+%% \fnum@algorithm: "\algorithmname<sep>\thealgorithm", where <sep> is
+%% taken from \fnum@figure of the class if it is
+%% "\figurename<sep>\thefigure" (\nobreakspace in article, \nobreak in
+%% jsclasses, ~ in jarticle, nothing in jlreq).  Otherwise, and with
+%% the option english of jsclasses (whose \figurename ends with a
+%% space), <sep> is \nobreak for Japanese names and \nobreakspace for
+%% the others.
+\def\algorithmlite@sep{%
+  \ifx\algorithmname\algorithmlite@en@name\nobreakspace\else\nobreak\fi}
+\def\algorithmlite@parse#1\figurename#2\thefigure#3\algorithmlite@nil{%
+  \def\@tempa{#1#3}%
+  \ifx\@tempa\@empty\def\algorithmlite@sep{#2}\fi}
+\algorithmlite@ifenglish{}{%
+  \ifdefined\fnum@figure
+    \def\@tempa{\in@\figurename}%
+    \expandafter\@tempa\expandafter{\fnum@figure}%
+    \ifin@
+      \def\@tempa{\in@\thefigure}%
+      \expandafter\@tempa\expandafter{\fnum@figure}%
+      \ifin@
+        \expandafter\algorithmlite@parse\fnum@figure\algorithmlite@nil
+      \fi
+    \fi
+  \fi}
+\def\fnum@algorithm{\algorithmname\algorithmlite@sep\thealgorithm}
+
+%% -----------------------------------------------------------------
+%% 3. Float type
+%%    \ftype@<type> is a bit: figure = 1, table = 2.  The next free bit
+%%    is taken from the counter of the float package (also used by
+%%    floatrow and newfloat) or of memoir.  If neither is there yet, 4
+%%    is taken, and the counter of the float package is moved to 8 when
+%%    the package is loaded later (newfloat alone starts at 8).
+%% -----------------------------------------------------------------
+\@ifundefined{c@float@type}
+  {\@ifundefined{c@newflo@tctr}
+     {\def\ftype@algorithm{4}%
+      \def\algorithmlite@movefloattype{%
+        \ifnum\value{float@type}=4 \setcounter{float@type}{8}\fi}%
+      \AddToHook{package/float/after}{\algorithmlite@movefloattype}%
+      \AddToHook{package/floatrow/after}{\algorithmlite@movefloattype}}
+     {\edef\ftype@algorithm{\the\c@newflo@tctr}%
+      \global\advance\c@newflo@tctr\c@newflo@tctr}}
+  {\edef\ftype@algorithm{\the\value{float@type}}%
+   \addtocounter{float@type}{\value{float@type}}}
+
+%% -----------------------------------------------------------------
+%% 4. The environments algorithm and algorithm*
+%% -----------------------------------------------------------------
+\def\fps@algorithm{tbp}
+\def\ext@algorithm{loa}
+\newenvironment{algorithm}
+  {\@float{algorithm}}
+  {\end@float}
+\newenvironment{algorithm*}
+  {\@dblfloat{algorithm}}
+  {\end@dblfloat}
+
+%% -----------------------------------------------------------------
+%% 5. List of algorithms
+%%    \listoffigures of the class is used, with \listalgorithmname and
+%%    the .loa file.
+%% -----------------------------------------------------------------
+\@ifundefined{l@figure}
+  {\newcommand*\l@algorithm{\@dottedtocline{1}{1.5em}{2.3em}}}
+  {\let\l@algorithm\l@figure}
+\newcommand\listofalgorithms{%
+  \begingroup
+    \let\listfigurename\listalgorithmname
+    \let\algorithmlite@starttoc\@starttoc
+    \def\@starttoc##1{\algorithmlite@starttoc{loa}}%
+    \@ifundefined{listoffigures}
+      {\section*{\listalgorithmname}%
+       \@mkboth{\listalgorithmname}{\listalgorithmname}%
+       \@starttoc{loa}}
+      {\listoffigures}%
+  \endgroup}
+
+%% -----------------------------------------------------------------
+%% 6. The placement [H]
+%%    Defined at \begin{document} unless the float package or the
+%%    floatrow package gives one.  As with the float package, [H] is
+%%    then available for every float type.  The end of the current
+%%    environment (\@currenvir) is replaced, so that [H] works also for
+%%    algorithm* in one-column mode and for an environment that calls
+%%    \@float directly.
+%% -----------------------------------------------------------------
+\newsavebox\algorithmlite@box
+\def\algorithmlite@HH#1[H]{%
+  \expandafter\let\csname end\@currenvir\endcsname\algorithmlite@endH
+  \let\@currbox\algorithmlite@box
+  \def\@captype{#1}%
+  \def\@fps{H}%
+  \setbox\@currbox\color@vbox\normalcolor
+    \vbox\bgroup \hsize\columnwidth \@parboxrestore
+      \@floatboxreset \@setnobreak
+  \ignorespaces}
+\def\algorithmlite@endH{\@endfloatbox
+  \vskip\intextsep
+  \box\@currbox
+  \vskip\intextsep\relax}
+\def\algorithmlite@defineH{%
+  \let\algorithmlite@Hx\@xfloat
+  \def\@xfloat##1[{%
+    \@ifnextchar{H}
+      {\algorithmlite@HH{##1}[}
+      {\algorithmlite@Hx{##1}[}}}
+\AtBeginDocument{%
+  \@ifpackageloaded{float}{}{%
+    \@ifpackageloaded{floatrow}{}{%
+      \@ifundefined{@float@HH}{\algorithmlite@defineH}{}}}}
+
+\endinput

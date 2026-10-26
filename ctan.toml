@@ -1,0 +1,46 @@
+# ctan.toml -- metadata for "ctango upload".
+# Keys follow the CTAN submission API: https://ctan.org/help/submit
+# uploader/email are taken from ~/.config/ctango/config.toml or git config.
+
+pkg         = "algorithmlite"
+ctanPath    = "/macros/latex/contrib/algorithmlite"
+summary     = "A lightweight algorithm float without the float package"
+description = '''
+<p>
+The algorithm package defines its float with the float package, which
+redefines <code>\caption</code> for every float of the document.  This
+package defines the environments <code>algorithm</code> and
+<code>algorithm*</code> in the same way as the standard classes define
+<code>figure</code> and <code>table</code>, with the float mechanism
+of the LaTeX kernel, without loading the float package.
+</p>
+<p>
+It provides the counter (reset at every chapter if there are chapters),
+<code>\algorithmname</code>, <code>\listofalgorithms</code> (Japanese
+names with pTeX/upTeX and LuaTeX-ja), a float type that does not clash
+with those of float, floatrow, newfloat and memoir, and a minimal
+placement <code>[H]</code> when the float package is not loaded.  The
+content of an algorithm is set with algorithmic, algpseudocode or any
+other package.
+</p>
+<p>
+Supported formats/engines: <code>pdflatex</code>, <code>xelatex</code>,
+<code>lualatex</code>, <code>platex</code>, <code>uplatex</code>
+(with <code>dvipdfmx</code>).
+</p>
+'''
+author      = ["Munehiro Yamamoto"]
+license     = ["lppl1.3c"]
+topic       = ["float", "algorithms"]
+# home        = "https://..."
+bugtracker  = ["https://github.com/munepi/algorithmlite/issues"]
+# support     = "https://..."
+repository  = ["https://github.com/munepi/algorithmlite"]
+# development = "https://..."
+
+archive     = "algorithmlite.zip"  # built by "make ctanzip"
+
+# The version is read from this file (\ProvidesPackage / \ProvidesExplPackage).
+# Add pattern = '...' to use your own regular expression (first group = version).
+[version]
+file        = "algorithmlite.sty"

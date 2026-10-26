@@ -1,0 +1,214 @@
+%% algorithmlite.tex -- documentation for the algorithmlite package
+%%
+%% Copyright (c) 2026 Munehiro Yamamoto <munepixyz@gmail.com>
+%% License: LPPL 1.3c or later
+%%
+%% Build: pdflatex algorithmlite.tex (twice)
+\documentclass{article}
+\usepackage[margin=28mm]{geometry}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{algorithmlite}
+\usepackage{algorithmic}
+\usepackage[colorlinks, allcolors=blue!50!black]{hyperref}
+\setlength\emergencystretch{2em}
+\newcommand*\alversion{v1.0 (2026/10/26)}
+\newcommand*\cs[1]{\texttt{\char`\\#1}}
+\newcommand*\pkg[1]{\textsf{#1}}
+\newcommand*\env[1]{\texttt{#1}}
+\newcommand*\meta[1]{$\langle$\textit{#1}$\rangle$}
+
+\title{The \pkg{algorithmlite} package\\
+  \large A lightweight algorithm float without the float package}
+\author{Munehiro Yamamoto\\
+  \url{https://github.com/munepi/algorithmlite}}
+\date{\alversion}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+The \pkg{algorithm} package defines the \env{algorithm} float with
+\cs{newfloat} of the \pkg{float} package.  The \pkg{float} package
+redefines \cs{caption} as a whole, for every float of the document,
+and it is often in the way of the class and of other packages that
+format captions.
+
+The \pkg{algorithmlite} package defines the environments
+\env{algorithm} and \env{algorithm*} in the same way as the standard
+classes define \env{figure} and \env{table}: with \cs{@float} and
+\cs{@dblfloat} of the \LaTeX{} kernel, so that the captions of
+algorithms are set by the \cs{@makecaption} of the class, as those of
+figures and tables.  The \pkg{float} package is not loaded.  If no
+other package gives the placement \texttt{[H]}, \pkg{algorithmlite}
+gives a minimal one.
+
+The content of an algorithm is not the business of this package: load
+\pkg{algorithmic}, \pkg{algpseudocode} (\pkg{algorithmicx}) or any
+other package for it.
+
+\begin{algorithm}[H]
+\caption{Euclid's algorithm}\label{alg:euclid}
+\begin{algorithmic}[1]
+\REQUIRE $a \geq 0$, $b \geq 0$
+\WHILE{$b \neq 0$}
+  \STATE $(a, b) \leftarrow (b, a \bmod b)$
+\ENDWHILE
+\RETURN $a$
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Supported formats/engines}
+pdf\LaTeX, Xe\LaTeX, Lua\LaTeX{} (with or without Lua\TeX-ja),
+p\LaTeX{} and up\LaTeX{} (with dvipdfmx).  \LaTeX2e{} 2020-10-01 or
+later is required.
+
+\section{Usage}
+
+\begin{verbatim}
+\usepackage{algorithmlite}
+\usepackage{algorithmic}   % or algpseudocode, ...
+
+\begin{algorithm}[tbp]     % or [H]
+\caption{Euclid's algorithm}\label{alg:euclid}
+\begin{algorithmic}[1]
+  ...
+\end{algorithmic}
+\end{algorithm}
+
+\listofalgorithms
+\end{verbatim}
+
+\noindent
+Algorithm~\ref{alg:euclid} above is set with \texttt{[H]}.  The package
+has no options.
+
+\section{What is defined}
+
+\begin{description}
+\item[\env{algorithm}, \env{algorithm*}] The float and its two-column
+  variant, as \env{figure} and \env{figure*}.  The default placement
+  (\cs{fps@algorithm}) is \texttt{tbp}.
+
+\item[The counter \texttt{algorithm}] With \cs{chapter}, it is reset
+  at every chapter, and \cs{thealgorithm} is the chapter number, a
+  period and \meta{n} (just \meta{n} before the first chapter), as
+  \cs{thefigure} of the book classes; otherwise it is \meta{n}.  Redefine \cs{thealgorithm} for another numbering.
+
+\item[\cs{algorithmname}] \texttt{Algorithm}; in Japanese (the word
+  ``algorithm'' in katakana) with p\TeX, up\TeX{} and Lua\TeX-ja, unless the class
+  option \texttt{english} of jsclasses or the Lua\TeX-ja classes is
+  given.  Lua\TeX-ja may also be loaded after \pkg{algorithmlite}.
+
+\item[\cs{listalgorithmname}] \texttt{List of Algorithms}; in
+  Japanese, ``algorithm'' followed by the word for ``list'' (as
+  ``List of Figures'' is in jsclasses).
+
+\item[\cs{fnum@algorithm}] \cs{algorithmname}\meta{sep}%
+  \cs{thealgorithm}, where \meta{sep} is taken from \cs{fnum@figure}
+  of the class if it is \cs{figurename}\meta{sep}\cs{thefigure}:
+  \cs{nobreakspace} in the standard classes, \cs{nobreak} in jsclasses
+  and the Lua\TeX-ja classes, \verb|~| in the p\LaTeX{} standard
+  classes, nothing in jlreq.  Otherwise \meta{sep} is \cs{nobreak} for
+  the Japanese name and \cs{nobreakspace} for the English one.
+
+\item[\cs{listofalgorithms}] The list of algorithms, from the file
+  \texttt{.loa}.  It is \cs{listoffigures} of the class with
+  \cs{listalgorithmname} and \texttt{.loa}, so that it looks like the
+  list of figures (a \cs{chapter*} or a \cs{section*}, the running
+  heads, \dots).  The entries are set with \cs{l@algorithm}, which is
+  \cs{l@figure} of the class.
+
+\item[The float type] The float type \cs{ftype@algorithm} is a bit,
+  as are \cs{ftype@figure}${}=1$ and \cs{ftype@table}${}=2$.  It is
+  the next free bit, $4$ in most documents.  The counter of the
+  \pkg{float} package (also used by \pkg{floatrow} and \pkg{newfloat})
+  and that of memoir are shared: if one of them is already there, its
+  value is taken and the counter is moved on; if the \pkg{float} or
+  \pkg{floatrow} package is loaded later (e.g.\ by \pkg{minted}), its
+  counter is moved past $4$.  The \pkg{newfloat} package alone starts
+  at $8$.
+\end{description}
+
+\section{The placement \texttt{[H]}}
+
+At \verb|\begin{document}|, if neither the \pkg{float} package nor the
+\pkg{floatrow} package is loaded and \cs{@float@HH} is not defined,
+\pkg{algorithmlite} defines the placement \texttt{[H]}: the float is
+put in a box ``here'', in the text, with \cs{intextsep} above and
+below it, and \cs{caption} works in it as in a float.  As with the
+\pkg{float} package, \texttt{[H]} is then available for every float
+type: \env{figure}, \env{table}, \env{algorithm}, \dots
+
+If the \pkg{float} package is loaded (before or after
+\pkg{algorithmlite}), its \texttt{[H]} is used.
+
+\section{Errors}
+
+\begin{description}
+\item[\texttt{Package `algorithm' cannot be used with algorithmlite}]
+  The \pkg{algorithm} or \pkg{algorithm2e} package is loaded before or
+  after \pkg{algorithmlite}.  Both define the \env{algorithm}
+  environment; load only one of them.
+\item[\texttt{The algorithm environment or counter is already
+  defined}] \pkg{algorithmlite} does not redefine them.
+\end{description}
+
+\section{Limitations}
+
+\begin{itemize}
+\item \texttt{algorithm*[H]} in two-column mode is not supported (as
+  with the \pkg{float} package).  In one-column mode it works.
+\item Vertical writing (tate) is outside the scope of this version.
+\end{itemize}
+
+\section{Tests}
+
+\verb|make test| compiles every test twice with pdf\LaTeX, Xe\LaTeX,
+Lua\LaTeX, p\LaTeX{} and up\LaTeX{} (+ dvipdfmx) and checks the log.
+\texttt{test-common.tex} checks the numbers, names, float types and
+\cs{ref} immediately, and the pages of \texttt{[H]} and \texttt{[p]}
+floats from records written to the \texttt{.aux} file at shipout
+(\texttt{ALGL-RESULT OK}).
+
+\begin{center}
+\begin{tabular}{l>{\raggedright\arraybackslash}p{.62\linewidth}}
+  \hline
+  Test & What it covers\\
+  \hline
+  \texttt{test-basic.tex}     & numbering with and without chapters,
+                                names (English/Japanese), \cs{fnum@algorithm},
+                                \texttt{[H]}, \texttt{[p]}, \env{figure}\texttt{[H]},
+                                \env{algorithm*}, \cs{ref},
+                                \cs{listofalgorithms}; article, book,
+                                jsclasses, Lua\TeX-ja classes, jlreq,
+                                p\LaTeX{} standard classes\\
+  \texttt{test-hyperref.tex}  & \texttt{test-basic.tex} with
+                                \pkg{hyperref}: no duplicate destinations\\
+  \texttt{test-twocolumn.tex} & \env{algorithm*} and \texttt{[H]} in
+                                two-column mode\\
+  \texttt{test-compat.tex}    & \pkg{float} before/after, \pkg{newfloat},
+                                \pkg{caption}, memoir\\
+  \texttt{test-errors.tex}    & the error messages\\
+  \hline
+\end{tabular}
+\end{center}
+
+\section{History}
+
+\begin{description}
+\item[v1.0 (2026/10/26)] First public release.
+\end{description}
+
+\section{License}
+
+This package is licensed under the conditions of the \LaTeX{} Project
+Public License, either version~1.3c of this license or any later
+version.
+
+\medskip
+\noindent
+Copyright \copyright{} 2026 Munehiro Yamamoto
+
+\end{document}

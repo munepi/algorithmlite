@@ -1,0 +1,103 @@
+%% test-compat.tex
+%% ===============
+%% algorithmlite with the other packages and classes that define float
+%% types or the placement [H].
+%%
+%%   pdflatex -jobname=test-compat-floatbefore "\def\CASE{floatbefore}%
+%%     \input test-compat"   (run twice)
+%%
+%% \CASE is one of
+%%   floatbefore  float and \newfloat{program} before algorithmlite:
+%%                algorithm = 8, [H] of float;
+%%   floatafter   float and \newfloat{program} after algorithmlite (as
+%%                minted does): algorithm = 4, [H] of float;
+%%   newfloat     \DeclareFloatingEnvironment{program} of newfloat after
+%%                algorithmlite: algorithm = 4, program = 8;
+%%   caption      the caption package with \captionsetup[algorithm];
+%%   memoir       the memoir class and its \newfloat{program}.
+%%
+%% Note: \newfloat of float sets \ftype@<type> to the register
+%% \c@float@type itself, not to its value, so that every float type of
+%% float.sty has the final value of the counter.  algorithmlite moves
+%% the counter past its own float type, so that they are distinct.
+%%
+%% What to check:
+%%   * ALGL-RESULT OK, and no error or warning.
+\ifdefined\CASE\else\def\CASE{floatbefore}\fi
+\def\ALGLcase#1{\def\ALGLtmp{#1}\ifx\ALGLtmp\CASE}
+\makeatletter
+\ALGLcase{memoir}\documentclass{memoir}\else\documentclass{article}\fi
+\ALGLcase{floatbefore}
+  \usepackage{float}
+  \newfloat{program}{tbp}{lop}
+\fi
+\usepackage{algorithmlite}
+\ALGLcase{floatafter}
+  \usepackage{float}
+  \newfloat{program}{tbp}{lop}
+\fi
+\ALGLcase{newfloat}
+  \usepackage{newfloat}
+  \DeclareFloatingEnvironment{program}
+\fi
+\ALGLcase{caption}
+  \usepackage{caption}
+  \captionsetup[algorithm]{labelfont=bf, labelsep=period}
+\fi
+\ALGLcase{memoir}
+  \newfloat{program}{lop}{Program}
+\fi
+\usepackage{algorithmic}
+\input{test-common}
+\makeatother
+\newcommand\code{%
+  \begin{algorithmic}
+  \STATE $y \leftarrow 1$
+  \end{algorithmic}}
+\begin{document}
+\makeatletter
+\ExplSyntaxOn
+\ALGLcase{floatbefore}\ALGLftypeis{algorithm}{8}\fi
+\ALGLcase{floatafter}\ALGLftypeis{algorithm}{4}\fi
+\ALGLcase{newfloat}\ALGLftypeis{algorithm}{4}\ALGLftypeis{program}{8}\fi
+\@ifundefined{ftype@program}
+  {\ALGLftype{figure,table,algorithm}}
+  {\ALGLftype{figure,table,algorithm,program}}
+\@ifpackageloaded{float}
+  {\ALGLtrue{[H] of the float package}
+     {\cs_if_exist_p:N \@float@HH && ! \cs_if_exist_p:N \algorithmlite@Hx}}
+  {\ALGLtrue{[H] of algorithmlite}{\cs_if_exist_p:N \algorithmlite@Hx}}
+\ExplSyntaxOff
+\makeatother
+\ALGLloa{2}
+\listofalgorithms
+
+Before the H algorithm.\ALGLhere{h-before}
+\begin{algorithm}[H]
+\ALGLhere{h-in}
+\caption{An H algorithm}
+\ALGLnum{1}{1}
+\code
+\end{algorithm}
+\ALGLnopending
+After the H algorithm.\ALGLhere{h-after}
+\ALGLnotlater{h-before}{h-in}
+\ALGLnotlater{h-in}{h-after}
+
+\begin{algorithm}
+\caption{A floating algorithm}
+\ALGLnum{2}{2}
+\code
+\end{algorithm}
+
+\makeatletter
+\@ifundefined{ftype@program}{}{%
+  \@ifundefined{@float@HH}{\def\ALGLtmp{tbp}}{\def\ALGLtmp{H}}%
+  \edef\ALGLtmp{\noexpand\begin{program}[\ALGLtmp]}\ALGLtmp
+  \caption{A program}
+  \code
+  \end{program}}
+\makeatother
+
+\ALGLfiller{10}
+\end{document}

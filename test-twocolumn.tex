@@ -1,0 +1,63 @@
+%% test-twocolumn.tex
+%% ==================
+%% algorithm and algorithm* in two-column mode.
+%%
+%%   pdflatex test-twocolumn.tex   (run twice)
+%%   uplatex -jobname=test-twocolumn-uplatex "\def\CLS{ujarticle}%
+%%     \def\WANTJA{1}\def\WANTSEP{~}\input test-twocolumn"
+%%
+%% What is covered:
+%%   * algorithm* spans both columns, on a later page than its place;
+%%   * algorithm[H] in a column, on the page where it is;
+%%   * \listofalgorithms in two-column mode.
+%%
+%% What to check:
+%%   * ALGL-RESULT OK, and no error or warning.
+\ifdefined\CLS\else\def\CLS{article}\fi
+\edef\ALGLclassoptions{\ifdefined\ptexversion dvipdfmx,\fi twocolumn}
+\expandafter\documentclass\expandafter[\ALGLclassoptions]{\CLS}
+\usepackage{algorithmlite}
+\usepackage{algorithmic}
+\input{test-common}
+\newcommand\code{%
+  \begin{algorithmic}
+  \STATE $y \leftarrow 1$
+  \FOR{$i = 1$ to $n$}
+  \STATE $y \leftarrow y \times i$
+  \ENDFOR
+  \end{algorithmic}}
+\begin{document}
+\ALGLname
+\ALGLloa{3}
+\listofalgorithms
+
+Before the algorithm*.\ALGLhere{d-before}
+\begin{algorithm*}
+\ALGLhere{d-in}
+\caption{An algorithm* across both columns}
+\ALGLnum{1}{1}\ALGLfnum
+\code
+\end{algorithm*}
+\ALGLlater{d-before}{d-in}
+
+\ALGLfiller{8}
+
+Before the H algorithm.\ALGLhere{h-before}
+\begin{algorithm}[H]
+\ALGLhere{h-in}
+\caption{An H algorithm in a column}
+\ALGLnum{2}{2}
+\code
+\end{algorithm}
+After the H algorithm.\ALGLhere{h-after}
+\ALGLnotlater{h-before}{h-in}
+\ALGLnotlater{h-in}{h-after}
+
+\begin{algorithm}
+\caption{A floating algorithm in a column}
+\ALGLnum{3}{3}
+\code
+\end{algorithm}
+
+\ALGLfiller{40}
+\end{document}

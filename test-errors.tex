@@ -1,0 +1,30 @@
+%% test-errors.tex
+%% ===============
+%% The error messages of algorithmlite.
+%%
+%%   pdflatex -jobname=test-errors-algbefore "\def\CASE{algbefore}%
+%%     \input test-errors"
+%%
+%% \CASE is one of
+%%   algbefore  the algorithm package before algorithmlite;
+%%   algafter   the algorithm package after algorithmlite;
+%%   alg2e      the algorithm2e package before algorithmlite;
+%%   alg2eafter the algorithm2e package after algorithmlite;
+%%   defined    the counter algorithm defined before algorithmlite.
+%%
+%% What to check:
+%%   * the error message given in the Makefile.
+\ifdefined\CASE\else\def\CASE{algbefore}\fi
+\def\ALGLcase#1{\def\ALGLtmp{#1}\ifx\ALGLtmp\CASE}
+\documentclass{article}
+\makeatletter
+\ALGLcase{algbefore}\usepackage{algorithm}\fi
+\ALGLcase{alg2e}\usepackage{algorithm2e}\fi
+\ALGLcase{defined}\newcounter{algorithm}\fi
+\usepackage{algorithmlite}
+\ALGLcase{algafter}\usepackage{algorithm}\fi
+\ALGLcase{alg2eafter}\usepackage{algorithm2e}\fi
+\makeatother
+\begin{document}
+Text.
+\end{document}

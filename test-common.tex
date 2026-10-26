@@ -1,0 +1,270 @@
+%% test-common.tex
+%% ===============
+%% Helpers shared by the test files; \input this file after
+%% \usepackage{algorithmlite}.
+%%
+%% Immediate checks (each logs "ALGL-CHECK OK: ..." or
+%% "ALGL-CHECK NG: ..."):
+%%   \ALGLnum{<with chapter>}{<without chapter>}
+%%     \thealgorithm is <with chapter> if \chapter is defined, and
+%%     <without chapter> otherwise.
+%%   \ALGLname
+%%     \algorithmname and \listalgorithmname are the Japanese names if
+%%     \WANTJA is 1, and the English names otherwise.
+%%   \ALGLfnum
+%%     \fnum@algorithm is as wide as "\algorithmname\WANTSEP
+%%     \thealgorithm" (\WANTSEP: the separator of the class).
+%%   \ALGLftype{<type>,...}
+%%     the float types \ftype@<type> are distinct powers of 2.
+%%   \ALGLftypeis{<type>}{<value>}
+%%     \ftype@<type> is <value>.
+%%   \ALGLnopending
+%%     no float is waiting to be placed, nor placed on the current
+%%     page (so that an [H] float before it was not floated).
+%%   \ALGLref{<label>}{<number>}
+%%     \ref{<label>} is <number> (from the previous run).
+%%   \ALGLtrue{<description>}{<boolean expression>}
+%%
+%% Checks at \end{document}, with the records written to the .aux file
+%% at shipout and read back when it is read at \end{document}:
+%%   \ALGLhere{<id>}
+%%     record the page where this point is shipped out.
+%%   \ALGLsamepage{<id1>}{<id2>}, \ALGLnotlater{<id1>}{<id2>},
+%%   \ALGLlater{<id1>}{<id2>}
+%%     <id2> is on the same page as / on the same or a later page than
+%%     / on a later page than <id1>.
+%%   \ALGLloa{<n>}
+%%     \listofalgorithms has <n> entries (from the previous run: the
+%%     tests are run twice), all set with \listalgorithmname as
+%%     \listfigurename.
+%%
+%% Logs "ALGL-RESULT OK (<n> checks)" or "ALGL-RESULT NG" at the end.
+\makeatletter
+\ExplSyntaxOn
+\int_new:N  \g__algl_checks_int
+\bool_new:N \g__algl_ng_bool
+\seq_new:N  \g__algl_end_seq
+\int_new:N  \g__algl_loa_int
+\bool_new:N \g__algl_loaname_bool
+\bool_gset_true:N \g__algl_loaname_bool
+\tl_new:N   \l__algl_a_tl
+\tl_new:N   \l__algl_b_tl
+\ifdefined\WANTJA\else\def\WANTJA{0}\fi
+\ifdefined\WANTSEP\else\def\WANTSEP{\nobreakspace}\fi
+
+\cs_new_protected:Npn \__algl_result:nn #1#2
+  {
+    \int_gincr:N \g__algl_checks_int
+    \bool_if:nTF {#1}
+      { \iow_term:e { ALGL-CHECK~OK:~#2 } }
+      {
+        \bool_gset_true:N \g__algl_ng_bool
+        \iow_term:e { ALGL-CHECK~NG:~#2 }
+      }
+  }
+\NewDocumentCommand \ALGLtrue { m m }
+  { \__algl_result:nn {#2} {#1} }
+
+\NewDocumentCommand \ALGLnum { m m }
+  {
+    \cs_if_exist:NTF \c@chapter
+      { \tl_set:Nn \l__algl_b_tl {#1} }
+      { \tl_set:Nn \l__algl_b_tl {#2} }
+    \tl_set:Ne \l__algl_a_tl { \thealgorithm }
+    \__algl_result:nn
+      { \str_if_eq_p:ee { \l__algl_a_tl } { \l__algl_b_tl } }
+      { \string\thealgorithm=\l__algl_a_tl,~want~\l__algl_b_tl }
+  }
+
+\NewDocumentCommand \ALGLname { }
+  {
+    \int_compare:nNnTF { \WANTJA } = { 1 }
+      {
+        \__algl_name:nn { algorithmname } { アルゴリズム }
+        \__algl_name:nn { listalgorithmname } { アルゴリズム目次 }
+      }
+      {
+        \__algl_name:nn { algorithmname } { Algorithm }
+        \__algl_name:nn { listalgorithmname } { List~of~Algorithms }
+      }
+  }
+\cs_new_protected:Npn \__algl_name:nn #1#2
+  {
+    \__algl_result:nn
+      { \str_if_eq_p:ee { \use:c {#1} } {#2} }
+      { \c_backslash_str #1~(WANTJA=\WANTJA) }
+  }
+
+\NewDocumentCommand \ALGLfnum { }
+  {
+    \hbox_set:Nn \l_tmpa_box { \fnum@algorithm }
+    \hbox_set:Nn \l_tmpb_box { \algorithmname \WANTSEP \thealgorithm }
+    \__algl_result:nn
+      { \dim_compare_p:nNn { \box_wd:N \l_tmpa_box } = { \box_wd:N \l_tmpb_box } }
+      {
+        \string\fnum@algorithm\c_space_tl
+        (\dim_use:N \box_wd:N \l_tmpa_box\c_space_tl vs~
+         \dim_use:N \box_wd:N \l_tmpb_box)
+      }
+  }
+
+\NewDocumentCommand \ALGLftype { m }
+  {
+    \seq_set_from_clist:Nn \l_tmpa_seq {#1}
+    \seq_clear:N \l_tmpb_seq
+    \bool_set_true:N \l_tmpa_bool
+    \seq_map_inline:Nn \l_tmpa_seq
+      {
+        \bool_if:nF { \__algl_pow_ii_p:n { \use:c { ftype@##1 } } }
+          { \bool_set_false:N \l_tmpa_bool }
+        \seq_put_right:Ne \l_tmpb_seq { \int_eval:n { \use:c { ftype@##1 } } }
+      }
+    \seq_remove_duplicates:N \l_tmpb_seq
+    \int_compare:nNnF { \seq_count:N \l_tmpb_seq } = { \seq_count:N \l_tmpa_seq }
+      { \bool_set_false:N \l_tmpa_bool }
+    \__algl_result:nn { \l_tmpa_bool }
+      {
+        distinct~powers~of~2:~
+        \seq_map_function:NN \l_tmpa_seq \__algl_show_ftype:n
+      }
+  }
+\cs_new:Npn \__algl_show_ftype:n #1 { #1=\int_eval:n { \use:c { ftype@#1 } }~ }
+\prg_new_conditional:Npnn \__algl_pow_ii:n #1 { p, TF }
+  {
+    \int_compare:nNnTF {#1} < { 1 }
+      { \prg_return_false: }
+      {
+        \int_compare:nNnTF {#1} = { 1 }
+          { \prg_return_true: }
+          {
+            \int_if_odd:nTF {#1}
+              { \prg_return_false: }
+              {
+                \exp_args:Ne \__algl_pow_ii:nTF
+                  { \int_div_truncate:nn {#1} { 2 } }
+                  { \prg_return_true: } { \prg_return_false: }
+              }
+          }
+      }
+  }
+\NewDocumentCommand \ALGLftypeis { m m }
+  {
+    \__algl_result:nn
+      { \int_compare_p:nNn { \use:c { ftype@#1 } } = {#2} }
+      { \c_backslash_str ftype@#1=\int_eval:n { \use:c { ftype@#1 } },~want~#2 }
+  }
+
+\NewDocumentCommand \ALGLnopending { }
+  {
+    \__algl_result:nn
+      {
+        \tl_if_empty_p:o { \@currlist }
+        && \tl_if_empty_p:o { \@toplist }
+        && \tl_if_empty_p:o { \@botlist }
+        && \tl_if_empty_p:o { \@dbltoplist }
+        && \tl_if_empty_p:o { \@dbldeferlist }
+        && \tl_if_empty_p:o { \@deferlist }
+      }
+      { no~float~waiting~or~placed~on~this~page }
+  }
+
+\NewDocumentCommand \ALGLref { m m }
+  {
+    \cs_if_exist:cTF { r@#1 }
+      { \tl_set:Ne \l__algl_a_tl { \exp_last_unbraced:Nv \use_i_delimit_by_q_stop:nw { r@#1 } \q_stop } }
+      { \tl_set:Nn \l__algl_a_tl { ?? } }
+    \__algl_result:nn
+      { \str_if_eq_p:ee { \l__algl_a_tl } {#2} }
+      { \string\ref{#1}=\l__algl_a_tl,~want~#2 }
+  }
+
+%% The entries of \listofalgorithms
+\AddToHook { begindocument }
+  {
+    \cs_gset_eq:NN \__algl_orig_l_algorithm:w \l@algorithm
+    \cs_gset_protected:Npn \l@algorithm
+      {
+        \int_gincr:N \g__algl_loa_int
+        \cs_if_eq:NNF \listfigurename \listalgorithmname
+          { \bool_gset_false:N \g__algl_loaname_bool }
+        \__algl_orig_l_algorithm:w
+      }
+  }
+\NewDocumentCommand \ALGLloa { m }
+  { \seq_gput_right:Nn \g__algl_end_seq { \__algl_check_loa:n {#1} } }
+\cs_new_protected:Npn \__algl_check_loa:n #1
+  {
+    \__algl_result:nn
+      {
+        \int_compare_p:nNn { \g__algl_loa_int } = {#1}
+        && \g__algl_loaname_bool
+      }
+      {
+        \string\listofalgorithms:~\int_use:N \g__algl_loa_int \c_space_tl entries,~
+        want~#1,~\bool_if:NTF \g__algl_loaname_bool { with } { without }~
+        \string\listalgorithmname
+      }
+  }
+
+%% Pages, recorded at shipout
+\NewDocumentCommand \ALGLhere { m }
+  {
+    \iow_shipout_e:Nn \@auxout
+      { \token_to_str:N \ALGL@p {#1} { \int_use:N \c@page } }
+  }
+\cs_new_eq:NN \ALGL@p \use_none:nn
+\AddToHook { enddocument/afterlastpage }
+  {
+    \cs_gset_protected:Npn \ALGL@p #1#2
+      { \tl_gset:cn { g__algl_page_#1_tl } {#2} }
+  }
+\NewDocumentCommand \ALGLsamepage { m m }
+  { \seq_gput_right:Nn \g__algl_end_seq { \__algl_check_page:nnn {#1} {#2} { = } } }
+\NewDocumentCommand \ALGLlater { m m }
+  { \seq_gput_right:Nn \g__algl_end_seq { \__algl_check_page:nnn {#1} {#2} { < } } }
+\NewDocumentCommand \ALGLnotlater { m m }
+  { \seq_gput_right:Nn \g__algl_end_seq { \__algl_check_page:nnn {#1} {#2} { <= } } }
+\cs_new_protected:Npn \__algl_check_page:nnn #1#2#3
+  {
+    \bool_lazy_and:nnTF
+      { \tl_if_exist_p:c { g__algl_page_#1_tl } }
+      { \tl_if_exist_p:c { g__algl_page_#2_tl } }
+      {
+        \__algl_result:nn
+          {
+            \int_compare_p:n
+              { \tl_use:c { g__algl_page_#1_tl } #3 \tl_use:c { g__algl_page_#2_tl } }
+          }
+          {
+            #1~p.\tl_use:c { g__algl_page_#1_tl }~#3~
+            #2~p.\tl_use:c { g__algl_page_#2_tl }
+          }
+      }
+      { \__algl_result:nn { \c_false_bool } { #1~or~#2~not~shipped~out } }
+  }
+
+\AddToHook { enddocument/afteraux }
+  {
+    \seq_map_inline:Nn \g__algl_end_seq {#1}
+    \int_compare:nNnT { \g__algl_checks_int } = { 0 }
+      { \__algl_result:nn { \c_false_bool } { no~checks } }
+    \bool_if:NTF \g__algl_ng_bool
+      { \iow_term:n { ALGL-RESULT~NG } }
+      {
+        \iow_term:e
+          { ALGL-RESULT~OK~(\int_use:N \g__algl_checks_int\c_space_tl checks) }
+      }
+  }
+\ExplSyntaxOff
+
+%% \ALGLfiller{<n>}: a paragraph of <n> filler sentences
+\newcommand\ALGL@filler{%
+  This is a filler sentence of plain English text for the test. }
+\newcommand\ALGLfiller[1]{%
+  \count@=0
+  \loop\advance\count@ by 1 \ALGL@filler\ifnum\count@<#1 \repeat\par}
+%% \ALGLchapter{<title>}: \chapter if defined, else \section
+\newcommand\ALGLchapter{%
+  \@ifundefined{chapter}{\section}{\chapter}}
+\makeatother
+\endinput

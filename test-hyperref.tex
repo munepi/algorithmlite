@@ -1,0 +1,12 @@
+%% test-hyperref.tex
+%% =================
+%% test-basic.tex with hyperref: every algorithm has its own
+%% destination, also when the counter is reset at every chapter.
+%%
+%%   pdflatex test-hyperref.tex   (run twice)
+%%
+%% What to check:
+%%   * ALGL-RESULT OK, and no warning on a duplicate or missing
+%%     destination in the log and in the output of (x)dvipdfmx.
+\def\ALGLhyperref{}
+\input{test-basic}

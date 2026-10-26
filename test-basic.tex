@@ -1,0 +1,149 @@
+%% test-basic.tex
+%% ==============
+%% Typesetting test for every engine and class.
+%%
+%%   pdflatex test-basic.tex   (or xelatex / lualatex; run twice)
+%%   platex -jobname=test-basic-jsbook "\def\CLS{jsbook}\def\WANTJA{1}%
+%%     \def\WANTSEP{\nobreak}\input test-basic" && dvipdfmx test-basic-jsbook
+%% The class is article by default; set \CLS for another one, \CLSOPT
+%% for its options (with pTeX the class option dvipdfmx is added),
+%% \WANTJA to 1 if the names should be Japanese, and \WANTSEP to the
+%% separator of \fnum@figure of the class (default \nobreakspace).
+%% \ALGLbefore and \ALGLafter are run before and after
+%% \usepackage{algorithmlite} (e.g. \usepackage{luatexja}).
+%%
+%% What is covered:
+%%   * \thealgorithm before the first chapter, in a chapter, reset at
+%%     the next chapter (or the plain numbers without \chapter);
+%%   * \algorithmname, \listalgorithmname and \fnum@algorithm, in
+%%     English and in Japanese (also with LuaTeX-ja loaded after
+%%     algorithmlite, and with the option english of jsclasses);
+%%   * the float type 4, distinct from figure and table;
+%%   * algorithm[H] in the text flow (before <= in <= after), not on
+%%     a float list;
+%%     algorithm[p] on a later page; algorithm with the default tbp;
+%%   * figure[H];
+%%   * algorithm* with and without [H] in one-column mode;
+%%   * \ref and \listofalgorithms (from the previous run);
+%%   * algorithmic inside algorithm.
+%%
+%% test-hyperref.tex runs this file with hyperref.
+%%
+%% What to check:
+%%   * ALGL-RESULT OK, and no error or warning.
+\ifdefined\CLS\else\def\CLS{article}\fi
+\ifdefined\CLSOPT\else\def\CLSOPT{}\fi
+\edef\ALGLclassoptions{\ifdefined\ptexversion dvipdfmx,\fi\CLSOPT}
+\expandafter\documentclass\expandafter[\ALGLclassoptions]{\CLS}
+\ifdefined\ALGLbefore\ALGLbefore\fi
+\usepackage{algorithmlite}
+\ifdefined\ALGLafter\ALGLafter\fi
+\usepackage{algorithmic}
+\ifdefined\ALGLhyperref\usepackage{hyperref}\fi
+\input{test-common}
+\newcommand\code{%
+  \begin{algorithmic}[1]
+  \REQUIRE $n \geq 0$
+  \STATE $y \leftarrow 1$
+  \WHILE{$n \neq 0$}
+  \STATE $y \leftarrow y \times n$; $n \leftarrow n - 1$
+  \ENDWHILE
+  \RETURN $y$
+  \end{algorithmic}}
+\begin{document}
+\ALGLname
+\ALGLftypeis{algorithm}{4}
+\ALGLftype{figure,table,algorithm}
+\ALGLloa{8}
+
+\listofalgorithms
+
+\section*{Before the first chapter}
+
+Before the H algorithm.\ALGLhere{h0-before}
+\begin{algorithm}[H]
+\ALGLhere{h0-in}
+\caption{Before the first chapter}\label{alg:pre}
+\ALGLnum{1}{1}\ALGLfnum
+\code
+\end{algorithm}
+\ALGLnopending
+After the H algorithm.\ALGLhere{h0-after}
+\ALGLnotlater{h0-before}{h0-in}
+\ALGLnotlater{h0-in}{h0-after}
+
+\ALGLchapter{The first chapter}
+
+Body text.\ALGLhere{p1-before}
+\begin{algorithm}[H]
+\caption{An H algorithm}\label{alg:first}
+\ALGLnum{1.1}{2}\ALGLfnum
+\code
+\end{algorithm}
+\ALGLnopending
+
+Before the H figure.\ALGLhere{f1-before}
+\begin{figure}[H]
+\ALGLhere{f1-in}
+\centering\fbox{A figure}
+\caption{An H figure}
+\end{figure}
+\ALGLnopending
+After the H figure.\ALGLhere{f1-after}
+\ALGLnotlater{f1-before}{f1-in}
+\ALGLnotlater{f1-in}{f1-after}
+
+\begin{algorithm}
+\caption{A floating algorithm}\label{alg:float}
+\ALGLnum{1.2}{3}
+\code
+\end{algorithm}
+
+\begin{algorithm}[p]
+\ALGLhere{p1-in}
+\caption{An algorithm on a float page}
+\ALGLnum{1.3}{4}
+\code
+\end{algorithm}
+\ALGLlater{p1-before}{p1-in}
+
+See Algorithms~\ref{alg:pre}, \ref{alg:first} and~\ref{alg:float}.
+\ALGLref{alg:pre}{1}
+\ALGLref{alg:first}{\ifdefined\chapter 1.1\else 2\fi}
+\ALGLref{alg:float}{\ifdefined\chapter 1.2\else 3\fi}
+
+\clearpage
+\ALGLchapter{The second chapter}
+
+\begin{algorithm}[H]
+\caption{The first algorithm of the second chapter}
+\ALGLnum{2.1}{5}\ALGLfnum
+\code
+\end{algorithm}
+
+Before the H algorithm*.\ALGLhere{h2-before}
+\begin{algorithm*}[H]
+\ALGLhere{h2-in}
+\caption{An H algorithm* in one-column mode}
+\ALGLnum{2.2}{6}
+\code
+\end{algorithm*}
+\ALGLnopending
+After the H algorithm*.\ALGLhere{h2-after}
+\ALGLnotlater{h2-before}{h2-in}
+\ALGLnotlater{h2-in}{h2-after}
+
+\begin{algorithm*}
+\caption{A floating algorithm*}
+\ALGLnum{2.3}{7}
+\code
+\end{algorithm*}
+
+\begin{algorithm}[tb]
+\caption[Short caption]{An algorithm with a short caption}
+\ALGLnum{2.4}{8}
+\code
+\end{algorithm}
+
+\ALGLfiller{10}
+\end{document}

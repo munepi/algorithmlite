@@ -31,7 +31,7 @@ Supported formats/engines: <code>pdflatex</code>, <code>xelatex</code>,
 '''
 author      = ["Munehiro Yamamoto"]
 license     = ["lppl1.3c"]
-topic       = ["float", "algorithms"]
+topic       = ["float", "pseudocode"]
 # home        = "https://..."
 bugtracker  = ["https://github.com/munepi/algorithmlite/issues"]
 # support     = "https://..."

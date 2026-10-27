@@ -199,7 +199,9 @@
 %%    then available for every float type.  The end of the current
 %%    environment (\@currenvir) is replaced, so that [H] works also for
 %%    algorithm* in one-column mode and for an environment that calls
-%%    \@float directly.
+%%    \@float directly.  In the box, \@captype is the float type and
+%%    \@fps is H, as \@xfloat sets them for the other placements (the
+%%    [H] of the float package does not set \@fps).
 %% -----------------------------------------------------------------
 \newsavebox\algorithmlite@box
 \def\algorithmlite@HH#1[H]{%

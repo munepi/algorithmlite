@@ -141,6 +141,14 @@ below it, and \cs{caption} works in it as in a float.  As with the
 \pkg{float} package, \texttt{[H]} is then available for every float
 type: \env{figure}, \env{table}, \env{algorithm}, \dots
 
+In the box, \cs{@captype} is the float type and \cs{@fps} is
+\texttt{H}, as \cs{@xfloat} of the kernel sets them for the other
+placements: code that runs in the float, such as a hook in
+\cs{@floatboxreset} or the caption, can tell an \texttt{[H]} float from
+the others by \cs{@fps}.  The \texttt{[H]} of the \pkg{float} package
+sets \cs{@captype} but not \cs{@fps}, which is then undefined (or has
+the value from outside the float).
+
 If the \pkg{float} package is loaded (before or after
 \pkg{algorithmlite}), its \texttt{[H]} is used.
 

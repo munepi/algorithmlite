@@ -8,7 +8,7 @@
 %%
 %% \CASE is one of
 %%   floatbefore  float and \newfloat{program} before algorithmlite:
-%%                algorithm = 8, [H] of float;
+%%                algorithm = 8, [H] of float (\@fps undefined in it);
 %%   floatafter   float and \newfloat{program} after algorithmlite (as
 %%                minted does): algorithm = 4, [H] of float;
 %%   newfloat     \DeclareFloatingEnvironment{program} of newfloat after
@@ -77,6 +77,9 @@ Before the H algorithm.\ALGLhere{h-before}
 \ALGLhere{h-in}
 \caption{An H algorithm}
 \ALGLnum{1}{1}
+\makeatletter
+\@ifpackageloaded{float}{\ALGLfps{(undefined)}}{\ALGLfps{H}}
+\makeatother
 \code
 \end{algorithm}
 \ALGLnopending

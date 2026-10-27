@@ -20,7 +20,7 @@
 %%     algorithmlite, and with the option english of jsclasses);
 %%   * the float type 4, distinct from figure and table;
 %%   * algorithm[H] in the text flow (before <= in <= after), not on
-%%     a float list;
+%%     a float list, with \@fps = H;
 %%     algorithm[p] on a later page; algorithm with the default tbp;
 %%   * figure[H];
 %%   * algorithm* with and without [H] in one-column mode;
@@ -64,7 +64,7 @@ Before the H algorithm.\ALGLhere{h0-before}
 \begin{algorithm}[H]
 \ALGLhere{h0-in}
 \caption{Before the first chapter}\label{alg:pre}
-\ALGLnum{1}{1}\ALGLfnum
+\ALGLnum{1}{1}\ALGLfnum\ALGLfps{H}
 \code
 \end{algorithm}
 \ALGLnopending
@@ -87,6 +87,7 @@ Before the H figure.\ALGLhere{f1-before}
 \ALGLhere{f1-in}
 \centering\fbox{A figure}
 \caption{An H figure}
+\ALGLfps{H}
 \end{figure}
 \ALGLnopending
 After the H figure.\ALGLhere{f1-after}
@@ -95,14 +96,14 @@ After the H figure.\ALGLhere{f1-after}
 
 \begin{algorithm}
 \caption{A floating algorithm}\label{alg:float}
-\ALGLnum{1.2}{3}
+\ALGLnum{1.2}{3}\ALGLfps{tbp}
 \code
 \end{algorithm}
 
 \begin{algorithm}[p]
 \ALGLhere{p1-in}
 \caption{An algorithm on a float page}
-\ALGLnum{1.3}{4}
+\ALGLnum{1.3}{4}\ALGLfps{p}
 \code
 \end{algorithm}
 \ALGLlater{p1-before}{p1-in}
@@ -125,7 +126,7 @@ Before the H algorithm*.\ALGLhere{h2-before}
 \begin{algorithm*}[H]
 \ALGLhere{h2-in}
 \caption{An H algorithm* in one-column mode}
-\ALGLnum{2.2}{6}
+\ALGLnum{2.2}{6}\ALGLfps{H}
 \code
 \end{algorithm*}
 \ALGLnopending

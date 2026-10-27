@@ -18,6 +18,8 @@
 %%     the float types \ftype@<type> are distinct powers of 2.
 %%   \ALGLftypeis{<type>}{<value>}
 %%     \ftype@<type> is <value>.
+%%   \ALGLfps{<placement>}
+%%     \@fps (the placement of the current float) is <placement>.
 %%   \ALGLnopending
 %%     no float is waiting to be placed, nor placed on the current
 %%     page (so that an [H] float before it was not floated).
@@ -152,6 +154,16 @@
     \__algl_result:nn
       { \int_compare_p:nNn { \use:c { ftype@#1 } } = {#2} }
       { \c_backslash_str ftype@#1=\int_eval:n { \use:c { ftype@#1 } },~want~#2 }
+  }
+
+\NewDocumentCommand \ALGLfps { m }
+  {
+    \cs_if_exist:NTF \@fps
+      { \tl_set:Ne \l__algl_a_tl { \@fps } }
+      { \tl_set:Nn \l__algl_a_tl { (undefined) } }
+    \__algl_result:nn
+      { \str_if_eq_p:ee { \l__algl_a_tl } {#1} }
+      { \string\@fps=\l__algl_a_tl,~want~#1 }
   }
 
 \NewDocumentCommand \ALGLnopending { }

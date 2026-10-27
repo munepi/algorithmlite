@@ -58,7 +58,7 @@ The package has no options.
 * `\fnum@algorithm`: `\algorithmname<sep>\thealgorithm`, where `<sep>` is taken from `\fnum@figure` of the class (`\nobreakspace` in the standard classes, `\nobreak` in jsclasses and the LuaTeX-ja classes, `~` in jarticle/ujarticle, nothing in jlreq).
 * `\listofalgorithms`: `\listoffigures` of the class with `\listalgorithmname` and the `.loa` file, so that it looks like the list of figures. The entries are set with `\l@algorithm` = `\l@figure` of the class.
 * The float type `\ftype@algorithm`: a bit, as `\ftype@figure` = 1 and `\ftype@table` = 2. It is the next free bit, 4 in most documents. The counter of the float package (also used by floatrow and newfloat) and that of memoir are shared, so that the float types stay distinct: if the float package is loaded later (e.g. by minted), its counter is moved past 4.
-* `[H]`: at `\begin{document}`, if neither the float package nor the floatrow package is loaded, a minimal `[H]` is defined (the float is put in a box "here", with `\intextsep` above and below it). As with the float package, it works for every float type. If the float package is loaded, its `[H]` is used.
+* `[H]`: at `\begin{document}`, if neither the float package nor the floatrow package is loaded, a minimal `[H]` is defined (the float is put in a box "here", with `\intextsep` above and below it). As with the float package, it works for every float type. In the box, `\@captype` is the float type and `\@fps` is `H`, so that code in the float can tell an `[H]` float from the others (the `[H]` of the float package does not set `\@fps`). If the float package is loaded, its `[H]` is used.
 
 ## Errors and limitations
 
@@ -71,7 +71,7 @@ The package has no options.
 
 `make test` compiles every test twice with pdfLaTeX, XeLaTeX, LuaLaTeX, pLaTeX and upLaTeX (+ dvipdfmx), and checks the log:
 
-* `ALGL-RESULT OK`: the numbers, names, `\fnum@algorithm`, float types and `\ref` are as expected, an `[H]` float stays in the text flow, a `[p]` float goes to a later page, and `\listofalgorithms` has every entry (see `test-common.tex`).
+* `ALGL-RESULT OK`: the numbers, names, `\fnum@algorithm`, float types, `\@fps` and `\ref` are as expected, an `[H]` float stays in the text flow, a `[p]` float goes to a later page, and `\listofalgorithms` has every entry (see `test-common.tex`).
 * No LaTeX or package warning other than "Label(s) may have changed".
 * `test-hyperref`: no warning on a duplicate or missing destination in the log or in the output of the engine and (x)dvipdfmx.
 * `test-errors`: the expected error message.

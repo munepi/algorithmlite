@@ -19,7 +19,8 @@ It provides the counter (reset at every chapter if there are chapters),
 <code>\algorithmname</code>, <code>\listofalgorithms</code> (Japanese
 names with pTeX/upTeX and LuaTeX-ja), a float type that does not clash
 with those of float, floatrow, newfloat and memoir, and a minimal
-placement <code>[H]</code> when the float package is not loaded.  The
+placement <code>[H]</code> when the float package is not loaded.  It
+supports Tagged PDF (<code>\DocumentMetadata{tagging=on}</code>).  The
 content of an algorithm is set with algorithmic, algpseudocode or any
 other package.
 </p>

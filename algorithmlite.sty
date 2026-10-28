@@ -31,7 +31,9 @@
 %%     (3) \algorithmname, \listalgorithmname and \listofalgorithms;
 %%         Japanese names with pTeX/upTeX and LuaTeX-ja;
 %%     (4) the placement [H] (here, no float) for every float type if
-%%         the float package or the floatrow package does not give one.
+%%         the float package or the floatrow package does not give one;
+%%     (5) Tagged PDF (\DocumentMetadata{tagging=on}): the structure
+%%         names of the float type algorithm, and the tagging of [H].
 %%   The content of an algorithm (algorithmic, algpseudocode, ...) is
 %%   loaded by the user.
 %%
@@ -47,7 +49,7 @@
 %%
 \NeedsTeXFormat{LaTeX2e}[2020/10/01]
 \ProvidesPackage{algorithmlite}
-  [2026/10/26 v1.0 A lightweight algorithm float without the float package]
+  [2026/10/28 v1.1 A lightweight algorithm float without the float package]
 
 %% -----------------------------------------------------------------
 %% 0. Conflicts with the algorithm and algorithm2e packages
@@ -171,6 +173,19 @@
 \newenvironment{algorithm*}
   {\@dblfloat{algorithm}}
   {\end@dblfloat}
+%% Tagged PDF: the structure names float/algorithm, ... are set up with
+%% \tagpdfsetup{float/new=algorithm}, unless the document has done it
+%% in the preamble (doing it twice is an error).
+\ExplSyntaxOn
+\keys_if_exist:nnT { __tag / setup } { float/new }
+  {
+    \AddToHook { begindocument }
+      {
+        \cs_if_exist:cF { l__tag_name_float/algorithm_tl }
+          { \tagpdfsetup { float/new = algorithm } }
+      }
+  }
+\ExplSyntaxOff
 
 %% -----------------------------------------------------------------
 %% 5. List of algorithms
@@ -202,9 +217,37 @@
 %%    \@float directly.  In the box, \@captype is the float type and
 %%    \@fps is H, as \@xfloat sets them for the other placements (the
 %%    [H] of the float package does not set \@fps).
+%%    Tagged PDF: the float is a structure in the text flow, as the [H]
+%%    of the float package is tagged by latex-lab (firstaid).
 %% -----------------------------------------------------------------
 \newsavebox\algorithmlite@box
-\def\algorithmlite@HH#1[H]{%
+\let\algorithmlite@tagHbegin\@gobble
+\let\algorithmlite@tagHend\relax
+\ifdefined\NewTaggingSocket
+  \ExplSyntaxOn
+  \NewTaggingSocket { algorithmlite/H/begin } { 1 }
+  \NewTaggingSocketPlug { algorithmlite/H/begin } { default }
+    {
+      \mode_if_horizontal:T { \tag_mc_end_push: \tag_struct_end: }
+      \tag_struct_begin:n { tag = \UseStructureName { float/#1 } }
+    }
+  \AssignTaggingSocketPlug { algorithmlite/H/begin } { default }
+  \NewTaggingSocket { algorithmlite/H/end } { 0 }
+  \NewTaggingSocketPlug { algorithmlite/H/end } { default }
+    {
+      \tag_struct_end:
+      \mode_if_horizontal:T
+        {
+          \tag_struct_begin:n { tag = \UseStructureName { para/textblock } }
+          \tag_mc_begin_pop:n { }
+        }
+    }
+  \AssignTaggingSocketPlug { algorithmlite/H/end } { default }
+  \ExplSyntaxOff
+  \def\algorithmlite@tagHbegin{\UseTaggingSocket{algorithmlite/H/begin}}
+  \def\algorithmlite@tagHend{\UseTaggingSocket{algorithmlite/H/end}}
+\fi
+\def\algorithmlite@HH#1[H]{\algorithmlite@tagHbegin{#1}%
   \expandafter\let\csname end\@currenvir\endcsname\algorithmlite@endH
   \let\@currbox\algorithmlite@box
   \def\@captype{#1}%
@@ -213,7 +256,7 @@
     \vbox\bgroup \hsize\columnwidth \@parboxrestore
       \@floatboxreset \@setnobreak
   \ignorespaces}
-\def\algorithmlite@endH{\@endfloatbox
+\def\algorithmlite@endH{\@endfloatbox\algorithmlite@tagHend
   \vskip\intextsep
   \box\@currbox
   \vskip\intextsep\relax}

@@ -58,6 +58,7 @@ The package has no options.
 * `\fnum@algorithm`: `\algorithmname<sep>\thealgorithm`, where `<sep>` is taken from `\fnum@figure` of the class (`\nobreakspace` in the standard classes, `\nobreak` in jsclasses and the LuaTeX-ja classes, `~` in jarticle/ujarticle, nothing in jlreq).
 * `\listofalgorithms`: `\listoffigures` of the class with `\listalgorithmname` and the `.loa` file, so that it looks like the list of figures. The entries are set with `\l@algorithm` = `\l@figure` of the class.
 * The float type `\ftype@algorithm`: a bit, as `\ftype@figure` = 1 and `\ftype@table` = 2. It is the next free bit, 4 in most documents. The counter of the float package (also used by floatrow and newfloat) and that of memoir are shared, so that the float types stay distinct: if the float package is loaded later (e.g. by minted), its counter is moved past 4.
+* Tagged PDF: with `\DocumentMetadata{tagging=on}`, the structure names of `algorithm` are set up with `\tagpdfsetup{float/new=algorithm}` (unless the document has done it), and the `[H]` of algorithmlite is tagged as that of the float package.
 * `[H]`: at `\begin{document}`, if neither the float package nor the floatrow package is loaded, a minimal `[H]` is defined (the float is put in a box "here", with `\intextsep` above and below it). As with the float package, it works for every float type. In the box, `\@captype` is the float type and `\@fps` is `H`, so that code in the float can tell an `[H]` float from the others (the `[H]` of the float package does not set `\@fps`). If the float package is loaded, its `[H]` is used.
 
 ## Errors and limitations
@@ -69,11 +70,11 @@ The package has no options.
 
 ## Testing
 
-`make test` compiles every test twice with pdfLaTeX, XeLaTeX, LuaLaTeX, pLaTeX and upLaTeX (+ dvipdfmx), and checks the log:
+`make test` compiles every test twice (`test-tagging`: three times) with pdfLaTeX, XeLaTeX, LuaLaTeX, pLaTeX and upLaTeX (+ dvipdfmx), and checks the log:
 
 * `ALGL-RESULT OK`: the numbers, names, `\fnum@algorithm`, float types, `\@fps` and `\ref` are as expected, an `[H]` float stays in the text flow, a `[p]` float goes to a later page, and `\listofalgorithms` has every entry (see `test-common.tex`).
-* No LaTeX or package warning other than "Label(s) may have changed".
-* `test-hyperref`: no warning on a duplicate or missing destination in the log or in the output of the engine and (x)dvipdfmx.
+* No LaTeX or package warning other than "Label(s) may have changed" (and the warning of tagpdf on unicode-math with lualatex).
+* `test-hyperref` (and `test-tagging` with hyperref): no warning on a duplicate or missing destination in the log or in the output of the engine and (x)dvipdfmx.
 * `test-errors`: the expected error message.
 
 | Test | Engines | What it covers |
@@ -82,6 +83,7 @@ The package has no options.
 | `test-hyperref.tex` | pdflatex, xelatex (book), lualatex (ltjsbook), platex (jsbook), uplatex (ujbook) | `test-basic.tex` with hyperref |
 | `test-twocolumn.tex` | pdflatex (article), uplatex (ujarticle) | `algorithm*` and `[H]` in two-column mode |
 | `test-compat.tex` | pdflatex | float before/after, newfloat, caption, memoir |
+| `test-tagging.tex` | pdflatex (article, book, book + hyperref, twocolumn, `float/new` in the preamble), lualatex (article, ltjsbook) | `test-basic.tex` and `test-twocolumn.tex` with `\DocumentMetadata{tagging=on}` |
 | `test-errors.tex` | pdflatex | the error messages |
 
 `test-common.tex` holds the helpers shared by the tests.

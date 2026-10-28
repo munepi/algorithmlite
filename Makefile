@@ -20,12 +20,15 @@ algorithmlite.pdf: algorithmlite.tex algorithmlite.sty
 	pdflatex -interaction=nonstopmode -halt-on-error $<
 
 ## Run the test suite ($(ALVER)):
-##  * every test is compiled twice (for \ref and \listofalgorithms)
-##    without errors
+##  * every test is compiled twice (for \ref and \listofalgorithms;
+##    test-tagging-*: three times, for the structure tree) without
+##    errors
 ##  * ALGL-RESULT OK and no ALGL-* NG (see test-common.tex)
-##  * no LaTeX warning other than "Label(s) may have changed"
-##  * test-hyperref-*: no warning on a duplicate or missing destination
-##    in the log or in the output of the engine and (x)dvipdfmx
+##  * no LaTeX warning other than "Label(s) may have changed" (and the
+##    one of tagpdf on unicode-math with lualatex)
+##  * test-hyperref-*, test-tagging-hyperref-*: no warning on a
+##    duplicate or missing destination in the log or in the output of
+##    the engine and (x)dvipdfmx
 ##  * test-errors-*: the expected error message
 ## A test is "<engine>:<jobname>:<input>".  The output of the engine and
 ## of (x)dvipdfmx is kept in <jobname>.term.
@@ -59,7 +62,14 @@ TESTS := \
   pdflatex:test-compat-floatafter:'\def\CASE{floatafter}\input test-compat' \
   pdflatex:test-compat-newfloat:'\def\CASE{newfloat}\input test-compat' \
   pdflatex:test-compat-caption:'\def\CASE{caption}\input test-compat' \
-  pdflatex:test-compat-memoir:'\def\CASE{memoir}\input test-compat'
+  pdflatex:test-compat-memoir:'\def\CASE{memoir}\input test-compat' \
+  pdflatex:test-tagging-pdflatex:'\input test-tagging' \
+  pdflatex:test-tagging-book-pdflatex:'\def\CLS{book}\input test-tagging' \
+  pdflatex:test-tagging-hyperref-pdflatex:'\def\CLS{book}\def\ALGLhyperref{}\input test-tagging' \
+  pdflatex:test-tagging-twocolumn-pdflatex:'\def\ALGLtwocolumn{}\input test-tagging' \
+  pdflatex:test-tagging-setup-pdflatex:'\def\ALGLafter{\tagpdfsetup{float/new=algorithm}}\input test-tagging' \
+  lualatex:test-tagging-lualatex:'\input test-tagging' \
+  lualatex:test-tagging-ltjsbook-lualatex:'\def\CLS{ltjsbook}$(JA)\def\WANTSEP{\nobreak}\input test-tagging'
 
 ## "<case>:<error message>" of test-errors.tex (pdflatex)
 ERRORS := \
@@ -77,7 +87,8 @@ test:
 	  echo "== $$eng $$job"; \
 	  rm -f $$job.aux $$job.loa $$job.dvi $$job.xdv; \
 	  opt=; if [ $$eng = xelatex ]; then opt=-no-pdf; fi; \
-	  for i in 1 2; do \
+	  runs="1 2"; case $$job in test-tagging-*) runs="1 2 3";; esac; \
+	  for i in $$runs; do \
 	    $$eng $$opt -interaction=nonstopmode -jobname=$$job "$$in" >$$job.term 2>&1 || true; \
 	  done; \
 	  if [ -f $$job.dvi ]; then dvipdfmx $$job.dvi >>$$job.term 2>&1; fi; \
@@ -87,11 +98,13 @@ test:
 	  grep -q '^ALGL-RESULT OK' $$job.log || \
 	    { echo "NG: no ALGL-RESULT OK in $$job.log"; exit 1; }; \
 	  if grep 'LaTeX Warning\|Package .* Warning' $$job.log | \
-	    grep -v 'Label(s) may have changed'; then \
+	    grep -v 'Label(s) may have changed' | \
+	    grep -v 'Neither unicode-math nor lua-unicode-math'; then \
 	    echo "NG: warning in $$job.log"; exit 1; fi; \
-	  case $$job in test-hyperref-*) \
+	  case $$job in test-hyperref-*|test-tagging-hyperref-*) \
 	    if cat $$job.log $$job.term | \
-	      grep -i 'duplicate\|already defined\|does not exist\|unreferenced destination'; then \
+	      grep -i 'duplicate\|already defined\|does not exist\|unreferenced destination' | \
+	      grep -v '^Info: mathml file'; then \
 	      echo "NG: destination warning in $$job.log or $$job.term"; exit 1; fi;; \
 	  esac; \
 	done; \

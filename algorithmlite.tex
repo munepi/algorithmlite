@@ -12,7 +12,7 @@
 \usepackage{algorithmic}
 \usepackage[colorlinks, allcolors=blue!50!black]{hyperref}
 \setlength\emergencystretch{2em}
-\newcommand*\alversion{v1.0 (2026/10/26)}
+\newcommand*\alversion{v1.1 (2026/10/28)}
 \newcommand*\cs[1]{\texttt{\char`\\#1}}
 \newcommand*\pkg[1]{\textsf{#1}}
 \newcommand*\env[1]{\texttt{#1}}
@@ -152,6 +152,21 @@ the value from outside the float).
 If the \pkg{float} package is loaded (before or after
 \pkg{algorithmlite}), its \texttt{[H]} is used.
 
+\section{Tagged PDF}
+
+With \verb|\DocumentMetadata{tagging=on}|, \pkg{algorithmlite} sets up
+the structure names of the float type \texttt{algorithm} with
+\verb|\tagpdfsetup{float/new=algorithm}| at \verb|\begin{document}|,
+so that algorithms are tagged as figures and tables are.  A document
+that already does it in the preamble (as a workaround for v1.0) needs
+no change: it is not done twice.
+
+The \texttt{[H]} of \pkg{algorithmlite} is tagged as that of the
+\pkg{float} package is by the \LaTeX{} kernel: the float is a
+structure in the text flow, with its caption.  The tagging is done by
+the sockets \texttt{algorithmlite/H/begin} and
+\texttt{algorithmlite/H/end}.
+
 \section{Errors}
 
 \begin{description}
@@ -173,8 +188,9 @@ If the \pkg{float} package is loaded (before or after
 
 \section{Tests}
 
-\verb|make test| compiles every test twice with pdf\LaTeX, Xe\LaTeX,
-Lua\LaTeX, p\LaTeX{} and up\LaTeX{} (+ dvipdfmx) and checks the log.
+\verb|make test| compiles every test twice (with tagging, three
+times) with pdf\LaTeX, Xe\LaTeX, Lua\LaTeX, p\LaTeX{} and up\LaTeX{}
+(+ dvipdfmx) and checks the log.
 \texttt{test-common.tex} checks the numbers, names, float types and
 \cs{ref} immediately, and the pages of \texttt{[H]} and \texttt{[p]}
 floats from records written to the \texttt{.aux} file at shipout
@@ -198,6 +214,11 @@ floats from records written to the \texttt{.aux} file at shipout
                                 two-column mode\\
   \texttt{test-compat.tex}    & \pkg{float} before/after, \pkg{newfloat},
                                 \pkg{caption}, memoir\\
+  \texttt{test-tagging.tex}   & \texttt{test-basic.tex} (also with
+                                \pkg{hyperref}) and
+                                \texttt{test-twocolumn.tex} with
+                                \verb|\DocumentMetadata{tagging=on}|:
+                                no tagpdf warning\\
   \texttt{test-errors.tex}    & the error messages\\
   \hline
 \end{tabular}
@@ -207,6 +228,9 @@ floats from records written to the \texttt{.aux} file at shipout
 
 \begin{description}
 \item[v1.0 (2026/10/26)] First public release.
+\item[v1.1 (2026/10/28)] Support for Tagged PDF: the structure names
+  of \texttt{algorithm}, and the tagging of \texttt{[H]}
+  (\href{https://github.com/munepi/algorithmlite/issues/1}{issue~\#1}).
 \end{description}
 
 \section{License}

@@ -1,0 +1,33 @@
+%% test-tagging.tex
+%% ================
+%% test-basic.tex (or test-twocolumn.tex if \ALGLtwocolumn is defined)
+%% with \DocumentMetadata{tagging=on}.
+%%
+%%   pdflatex test-tagging.tex   (run three times)
+%%   pdflatex -jobname=test-tagging-setup "\def\ALGLafter{%
+%%     \tagpdfsetup{float/new=algorithm}}\input test-tagging"
+%%
+%% What is covered:
+%%   * the structure names of the float type algorithm are set up
+%%     (also if the document has done it in the preamble);
+%%   * algorithm, algorithm* and [H] (also figure[H]) are tagged
+%%     without errors or tagpdf warnings.
+%%
+%% What to check:
+%%   * ALGL-RESULT OK, and no error or warning.
+\DocumentMetadata{tagging=on}
+\ExplSyntaxOn
+\AddToHook { begindocument/end }
+  {
+    \ALGLtrue { structure~names~of~float/algorithm }
+      {
+        \str_if_eq_p:ee
+          { \UseStructureName { float/algorithm/caption } } { Caption }
+      }
+  }
+\ExplSyntaxOff
+\ifdefined\ALGLtwocolumn
+  \input{test-twocolumn}
+\else
+  \input{test-basic}
+\fi
